@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Practice Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .level-selector {
+            margin-bottom: 30px;
+        }
+        
+        .level-selector label {
+            font-size: 1.2em;
+            margin-right: 15px;
+        }
+        
+        .level-selector select {
+            padding: 10px 15px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+        
+        .level-selector select option {
+            background: #333;
+            color: white;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .problem-container {
+            margin-bottom: 30px;
+        }
+        
+        .problem {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .timer {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #ffeb3b;
+            font-weight: bold;
+        }
+        
+        .timer.warning {
+            color: #ff5722;
+            animation: pulse 0.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .input-container {
+            margin-bottom: 30px;
+        }
+        
+        .answer-input {
+            font-size: 2em;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 15px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            max-width: 200px;
+            width: 100%;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.5);
+        }
+        
+        .submit-btn {
+            font-size: 1.2em;
+            padding: 15px 30px;
+            margin-left: 15px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .start-btn {
+            font-size: 1.5em;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
+        
+        .feedback {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 30px;
+        }
+        
+        .correct {
+            color: #4caf50;
+            animation: bounce 0.6s ease;
+        }
+        
+        .incorrect {
+            color: #f44336;
+            animation: shake 0.6s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧮 Math Challenge</h1>
+        
+        <div class="level-selector">
+            <label for="difficulty">Difficulty Level:</label>
+            <select id="difficulty">
+                <option value="1">Level 1 - Easy (25s)</option>
+                <option value="2">Level 2 - (22s)</option>
+                <option value="3">Level 3 - (20s)</option>
+                <option value="4">Level 4 - (17s)</option>
+                <option value="5">Level 5 - Medium (15s)</option>
+                <option value="6">Level 6 - (12s)</option>
+                <option value="7">Level 7 - (10s)</option>
+                <option value="8">Level 8 - (8s)</option>
+                <option value="9">Level 9 - Hard (6s)</option>
+                <option value="10">Level 10 - Expert (5s)</option>
+            </select>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div>✅ Correct</div>
+                <div id="correct-count">0</div>
+            </div>
+            <div class="stat-item">
+                <div>❌ Wrong</div>
+                <div id="wrong-count">0</div>
+            </div>
+            <div class="stat-item">
+                <div>📊 Total</div>
+                <div id="total-count">0</div>
+            </div>
+        </div>
+        
+        <div id="game-area" class="hidden">
+            <div class="problem-container">
+                <div id="problem" class="problem">3 × 7</div>
+                <div id="timer" class="timer">Time: 25s</div>
+            </div>
+            
+            <div class="input-container">
+                <input type="number" id="answer-input" class="answer-input" placeholder="?" autocomplete="off">
+                <button id="submit-btn" class="submit-btn">Submit</button>
+            </div>
+            
+            <div id="feedback" class="feedback"></div>
+        </div>
+        
+        <button id="start-btn" class="start-btn">Start Game</button>
+    </div>
+
+    <script>
+        class MathGame {
+            constructor() {
+                this.currentProblem = null;
+                this.correctAnswer = null;
+                this.timer = null;
+                this.timeLeft = 0;
+                this.stats = { correct: 0, wrong: 0, total: 0 };
+                this.isGameActive = false;
+                this.currentLevel = 1;
+                
+                this.initElements();
+                this.bindEvents();
+            }
+            
+            initElements() {
+                this.elements = {
+                    difficulty: document.getElementById('difficulty'),
+                    gameArea: document.getElementById('game-area'),
+                    startBtn: document.getElementById('start-btn'),
+                    problem: document.getElementById('problem'),
+                    timer: document.getElementById('timer'),
+                    answerInput: document.getElementById('answer-input'),
+                    submitBtn: document.getElementById('submit-btn'),
+                    feedback: document.getElementById('feedback'),
+                    correctCount: document.getElementById('correct-count'),
+                    wrongCount: document.getElementById('wrong-count'),
+                    totalCount: document.getElementById('total-count')
+                };
+            }
+            
+            bindEvents() {
+                this.elements.startBtn.addEventListener('click', () => this.startGame());
+                this.elements.submitBtn.addEventListener('click', () => this.submitAnswer());
+                this.elements.answerInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.submitAnswer();
+                });
+                this.elements.difficulty.addEventListener('change', () => {
+                    this.currentLevel = parseInt(this.elements.difficulty.value);
+                });
+            }
+            
+            startGame() {
+                this.isGameActive = true;
+                this.currentLevel = parseInt(this.elements.difficulty.value);
+                this.elements.startBtn.classList.add('hidden');
+                this.elements.gameArea.classList.remove('hidden');
+                this.generateProblem();
+            }
+            
+            generateProblem() {
+                if (!this.isGameActive) return;
+                
+                const level = this.currentLevel;
+                let num1, num2, operation, problem;
+                
+                // Define difficulty parameters
+                const config = this.getLevelConfig(level);
+                
+                // Choose random operation
+                const operations = config.operations;
+                operation = operations[Math.floor(Math.random() * operations.length)];
+                
+                switch (operation) {
+                    case '+':
+                        num1 = Math.floor(Math.random() * config.maxNum) + 1;
+                        num2 = Math.floor(Math.random() * config.maxNum) + 1;
+                        this.correctAnswer = num1 + num2;
+                        problem = `${num1} + ${num2}`;
+                        break;
+                    case '-':
+                        num1 = Math.floor(Math.random() * config.maxNum) + config.minNum;
+                        num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+                        this.correctAnswer = num1 - num2;
+                        problem = `${num1} - ${num2}`;
+                        break;
+                    case '×':
+                        num1 = Math.floor(Math.random() * config.maxMult) + 1;
+                        num2 = Math.floor(Math.random() * config.maxMult) + 1;
+                        this.correctAnswer = num1 * num2;
+                        problem = `${num1} × ${num2}`;
+                        break;
+                    case '÷':
+                        num2 = Math.floor(Math.random() * config.maxDiv) + 1;
+                        this.correctAnswer = Math.floor(Math.random() * config.maxDiv) + 1;
+                        num1 = num2 * this.correctAnswer;
+                        problem = `${num1} ÷ ${num2}`;
+                        break;
+                }
+                
+                this.elements.problem.textContent = problem;
+                this.elements.answerInput.value = '';
+                this.elements.answerInput.focus();
+                this.elements.feedback.textContent = '';
+                
+                this.startTimer(config.timeLimit);
+            }
+            
+            getLevelConfig(level) {
+                const configs = {
+                    1: { timeLimit: 25, maxNum: 20, minNum: 1, maxMult: 5, maxDiv: 5, operations: ['+', '-'] },
+                    2: { timeLimit: 22, maxNum: 30, minNum: 1, maxMult: 6, maxDiv: 6, operations: ['+', '-', '×'] },
+                    3: { timeLimit: 20, maxNum: 50, minNum: 1, maxMult: 7, maxDiv: 7, operations: ['+', '-', '×'] },
+                    4: { timeLimit: 17, maxNum: 75, minNum: 1, maxMult: 8, maxDiv: 8, operations: ['+', '-', '×', '÷'] },
+                    5: { timeLimit: 15, maxNum: 100, minNum: 1, maxMult: 9, maxDiv: 9, operations: ['+', '-', '×', '÷'] },
+                    6: { timeLimit: 12, maxNum: 150, minNum: 1, maxMult: 11, maxDiv: 10, operations: ['+', '-', '×', '÷'] },
+                    7: { timeLimit: 10, maxNum: 200, minNum: 1, maxMult: 12, maxDiv: 12, operations: ['+', '-', '×', '÷'] },
+                    8: { timeLimit: 8, maxNum: 300, minNum: 1, maxMult: 15, maxDiv: 15, operations: ['+', '-', '×', '÷'] },
+                    9: { timeLimit: 6, maxNum: 500, minNum: 1, maxMult: 20, maxDiv: 20, operations: ['+', '-', '×', '÷'] },
+                    10: { timeLimit: 5, maxNum: 1000, minNum: 1, maxMult: 25, maxDiv: 25, operations: ['+', '-', '×', '÷'] }
+                };
+                return configs[level] || configs[1];
+            }
+            
+            startTimer(seconds) {
+                this.timeLeft = seconds;
+                this.updateTimerDisplay();
+                
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateTimerDisplay();
+                    
+                    if (this.timeLeft <= 5) {
+                        this.elements.timer.classList.add('warning');
+                    }
+                    
+                    if (this.timeLeft <= 0) {
+                        this.timeUp();
+                    }
+                }, 1000);
+            }
+            
+            updateTimerDisplay() {
+                this.elements.timer.textContent = `Time: ${this.timeLeft}s`;
+            }
+            
+            timeUp() {
+                clearInterval(this.timer);
+                this.elements.timer.classList.remove('warning');
+                this.showFeedback(`Time's up! Answer was ${this.correctAnswer}`, 'incorrect');
+                this.stats.wrong++;
+                this.stats.total++;
+                this.updateStats();
+                setTimeout(() => this.generateProblem(), 2000);
+            }
+            
+            submitAnswer() {
+                if (!this.isGameActive) return;
+                
+                const userAnswer = parseInt(this.elements.answerInput.value);
+                
+                if (isNaN(userAnswer)) {
+                    this.elements.feedback.textContent = 'Please enter a number!';
+                    return;
+                }
+                
+                clearInterval(this.timer);
+                this.elements.timer.classList.remove('warning');
+                
+                if (userAnswer === this.correctAnswer) {
+                    this.showFeedback('Correct! 🎉', 'correct');
+                    this.stats.correct++;
+                } else {
+                    this.showFeedback(`Wrong! Answer was ${this.correctAnswer}`, 'incorrect');
+                    this.stats.wrong++;
+                }
+                
+                this.stats.total++;
+                this.updateStats();
+                setTimeout(() => this.generateProblem(), 1500);
+            }
+            
+            showFeedback(message, type) {
+                this.elements.feedback.textContent = message;
+                this.elements.feedback.className = `feedback ${type}`;
+            }
+            
+            updateStats() {
+                this.elements.correctCount.textContent = this.stats.correct;
+                this.elements.wrongCount.textContent = this.stats.wrong;
+                this.elements.totalCount.textContent = this.stats.total;
+            }
+        }
+        
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MathGame();
+        });
+    </script>
+</body>
+</html>
