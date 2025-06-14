@@ -55,6 +55,7 @@
             background: rgba(255, 255, 255, 0.2);
             color: white;
             backdrop-filter: blur(5px);
+            margin-left: 10px;
         }
         
         .level-selector select option {
@@ -197,19 +198,33 @@
         <h1>🧮 Math Challenge</h1>
         
         <div class="level-selector">
-            <label for="difficulty">Difficulty Level:</label>
-            <select id="difficulty">
-                <option value="1">Level 1 - Easy (25s)</option>
-                <option value="2">Level 2 - (22s)</option>
-                <option value="3">Level 3 - (20s)</option>
-                <option value="4">Level 4 - (17s)</option>
-                <option value="5">Level 5 - Medium (15s)</option>
-                <option value="6">Level 6 - (12s)</option>
-                <option value="7">Level 7 - (10s)</option>
-                <option value="8">Level 8 - (8s)</option>
-                <option value="9">Level 9 - Hard (6s)</option>
-                <option value="10">Level 10 - Expert (5s)</option>
-            </select>
+            <div style="margin-bottom: 15px;">
+                <label for="difficulty">Difficulty Level:</label>
+                <select id="difficulty">
+                    <option value="1">Level 1 - Easy (25s)</option>
+                    <option value="2">Level 2 - (22s)</option>
+                    <option value="3">Level 3 - (20s)</option>
+                    <option value="4">Level 4 - (17s)</option>
+                    <option value="5">Level 5 - Medium (15s)</option>
+                    <option value="6">Level 6 - (12s)</option>
+                    <option value="7">Level 7 - (10s)</option>
+                    <option value="8">Level 8 - (8s)</option>
+                    <option value="9">Level 9 - Hard (6s)</option>
+                    <option value="10">Level 10 - Expert (5s)</option>
+                </select>
+            </div>
+            <div>
+                <label for="puzzle-limit">Number of Problems:</label>
+                <select id="puzzle-limit">
+                    <option value="10">10 Problems</option>
+                    <option value="20">20 Problems</option>
+                    <option value="30">30 Problems</option>
+                    <option value="40">40 Problems</option>
+                    <option value="50">50 Problems</option>
+                    <option value="100">100 Problems</option>
+                    <option value="-1">Unlimited</option>
+                </select>
+            </div>
         </div>
         
         <div class="stats">
@@ -222,8 +237,8 @@
                 <div id="wrong-count">0</div>
             </div>
             <div class="stat-item">
-                <div>📊 Total</div>
-                <div id="total-count">0</div>
+                <div>📊 Progress</div>
+                <div id="progress-count">0/10</div>
             </div>
         </div>
         
@@ -254,6 +269,8 @@
                 this.stats = { correct: 0, wrong: 0, total: 0 };
                 this.isGameActive = false;
                 this.currentLevel = 1;
+                this.puzzleLimit = 10;
+                this.problemsRemaining = 10;
                 
                 this.initElements();
                 this.bindEvents();
@@ -262,6 +279,7 @@
             initElements() {
                 this.elements = {
                     difficulty: document.getElementById('difficulty'),
+                    puzzleLimit: document.getElementById('puzzle-limit'),
                     gameArea: document.getElementById('game-area'),
                     startBtn: document.getElementById('start-btn'),
                     problem: document.getElementById('problem'),
@@ -271,7 +289,7 @@
                     feedback: document.getElementById('feedback'),
                     correctCount: document.getElementById('correct-count'),
                     wrongCount: document.getElementById('wrong-count'),
-                    totalCount: document.getElementById('total-count')
+                    progressCount: document.getElementById('progress-count')
                 };
             }
             
@@ -284,18 +302,34 @@
                 this.elements.difficulty.addEventListener('change', () => {
                     this.currentLevel = parseInt(this.elements.difficulty.value);
                 });
+                this.elements.puzzleLimit.addEventListener('change', () => {
+                    this.puzzleLimit = parseInt(this.elements.puzzleLimit.value);
+                    this.problemsRemaining = this.puzzleLimit;
+                    this.updateStats();
+                });
             }
             
             startGame() {
                 this.isGameActive = true;
                 this.currentLevel = parseInt(this.elements.difficulty.value);
+                this.puzzleLimit = parseInt(this.elements.puzzleLimit.value);
+                this.problemsRemaining = this.puzzleLimit;
+                this.stats = { correct: 0, wrong: 0, total: 0 };
+                
                 this.elements.startBtn.classList.add('hidden');
                 this.elements.gameArea.classList.remove('hidden');
+                this.updateStats();
                 this.generateProblem();
             }
             
             generateProblem() {
                 if (!this.isGameActive) return;
+                
+                // Check if we've reached the limit
+                if (this.puzzleLimit > 0 && this.stats.total >= this.puzzleLimit) {
+                    this.endGame();
+                    return;
+                }
                 
                 const level = this.currentLevel;
                 let num1, num2, operation, problem;
@@ -387,7 +421,12 @@
                 this.stats.wrong++;
                 this.stats.total++;
                 this.updateStats();
-                setTimeout(() => this.generateProblem(), 2000);
+                
+                if (this.puzzleLimit > 0 && this.stats.total >= this.puzzleLimit) {
+                    setTimeout(() => this.endGame(), 2000);
+                } else {
+                    setTimeout(() => this.generateProblem(), 2000);
+                }
             }
             
             submitAnswer() {
@@ -413,7 +452,12 @@
                 
                 this.stats.total++;
                 this.updateStats();
-                setTimeout(() => this.generateProblem(), 1500);
+                
+                if (this.puzzleLimit > 0 && this.stats.total >= this.puzzleLimit) {
+                    setTimeout(() => this.endGame(), 1500);
+                } else {
+                    setTimeout(() => this.generateProblem(), 1500);
+                }
             }
             
             showFeedback(message, type) {
@@ -424,7 +468,42 @@
             updateStats() {
                 this.elements.correctCount.textContent = this.stats.correct;
                 this.elements.wrongCount.textContent = this.stats.wrong;
-                this.elements.totalCount.textContent = this.stats.total;
+                
+                if (this.puzzleLimit > 0) {
+                    this.elements.progressCount.textContent = `${this.stats.total}/${this.puzzleLimit}`;
+                } else {
+                    this.elements.progressCount.textContent = `${this.stats.total}`;
+                }
+            }
+            
+            endGame() {
+                this.isGameActive = false;
+                clearInterval(this.timer);
+                
+                const accuracy = this.stats.total > 0 ? Math.round((this.stats.correct / this.stats.total) * 100) : 0;
+                
+                this.elements.problem.textContent = "Game Complete! 🎉";
+                this.elements.timer.textContent = "";
+                this.elements.feedback.innerHTML = `
+                    <div style="font-size: 1.2em; margin: 20px 0;">
+                        <div>Final Score: ${accuracy}% accuracy</div>
+                        <div style="margin-top: 10px;">${this.stats.correct} correct out of ${this.stats.total}</div>
+                    </div>
+                `;
+                
+                this.elements.answerInput.style.display = 'none';
+                this.elements.submitBtn.textContent = 'Play Again';
+                this.elements.submitBtn.onclick = () => this.resetGame();
+            }
+            
+            resetGame() {
+                this.elements.answerInput.style.display = 'inline-block';
+                this.elements.submitBtn.textContent = 'Submit';
+                this.elements.submitBtn.onclick = () => this.submitAnswer();
+                this.elements.gameArea.classList.add('hidden');
+                this.elements.startBtn.classList.remove('hidden');
+                this.stats = { correct: 0, wrong: 0, total: 0 };
+                this.updateStats();
             }
         }
         
